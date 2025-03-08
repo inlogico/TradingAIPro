@@ -228,10 +228,79 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
-    </style>
-	<!-- Nella sezione head, aggiungi: -->
-<script type="module" src="app.js"></script>
+		<!-- 
+Aggiungere questo stile nella sezione <style> del file index.html 
+per assicurare che il pulsante di archivio CSV sia stilizzato correttamente 
+-->
+#showArchiveBtn {
+    background-color: #9c27b0;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
 
+#showArchiveBtn:hover {
+    background-color: #7b1fa2;
+    transform: translateY(-2px);
+}
+
+#showArchiveBtn .btn-icon {
+    margin-right: var(--spacing-sm);
+}
+
+/* Stili per la finestra modale dell'archivio */
+.archive-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.archive-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80%;
+    overflow: auto;
+    position: relative;
+}
+
+.archive-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.archive-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.archive-table th,
+.archive-table td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+    </style>
+    <!-- Script di correzione errori prima di qualsiasi altro script -->
+    <script src="fix-errors.js"></script>
 </head>
 <body>
     <header class="app-header">
@@ -417,9 +486,6 @@
         </div>
     </template>
 
-    <!-- Script per correggere errori di riferimento DOM e timing -->
-    <script src="fix-errors.js"></script>
-
     <!-- Wrapper per assicurare la compatibilità -->
     <script src="wrapper.js"></script>
 
@@ -450,7 +516,7 @@
             }, 50); // Piccolo delay per essere sicuri che il DOM sia pronto
         }
         
-        // Aggiungi event listener ai profili
+        // Aggiungi event listener ai profili solo dopo che il DOM è pronto
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.profile-card').forEach(card => {
                 card.addEventListener('click', function() {
@@ -461,83 +527,114 @@
         });
     </script>
 
-<!-- Script module per importare le funzionalità esistenti -->
+    <!-- Script module per l'inizializzazione dell'app -->
     <script type="module">
-        import { fetchAllData, runAIAnalysis, updateProfileInfo, fetchSentimentAnalysis } from './main.js';
+        // Importazione dei moduli iniziali
+        import { 
+            updateProfileInfo, 
+            fetchAllData, 
+            runAIAnalysis, 
+            fetchSentimentAnalysis, 
+            copyOrderToClipboard,
+            clearCache
+        } from './main.js';
         import { initializeAutocomplete } from './autocomplete.js';
         
-        // Esponiamo le funzioni globalmente in modo sicuro
-        window.domSafeOperation(() => {
-            window.fetchAllData = fetchAllData;
-            window.runAIAnalysis = runAIAnalysis;
-            window.fetchSentimentAnalysis = fetchSentimentAnalysis;
-            window.updateProfileInfo = updateProfileInfo;
+        // Funzione per inizializzare gli event listener della dashboard
+        function initDashboardListeners(profileValue) {
+            console.log('Dashboard pronta, inizializzazione componenti...');
             
-            // Inizializza event listener quando la dashboard è pronta
-            document.addEventListener('dashboard-ready', function(event) {
-                try {
-                    console.log('Dashboard pronta, inizializzazione componenti...');
-                    
-                    // Attendi un attimo per essere sicuri che tutti gli elementi siano caricati
-                    setTimeout(() => {
-                        // Inizializza l'autocompletamento
-                        initializeAutocomplete();
-                        
-                        // Aggiorna le informazioni del profilo in modo sicuro
-                        const profileValue = event.detail.profileValue;
-                        if (profileValue) {
-                            try {
-                                const profileInfo = document.getElementById('profileInfo');
-                                if (profileInfo) {
-                                    updateProfileInfo(profileValue);
-                                } else {
-                                    console.warn('Elemento profileInfo non trovato');
-                                }
-                            } catch (e) {
-                                console.error('Errore nell\'aggiornamento del profilo:', e);
-                            }
+            // Attendi un attimo per essere sicuri che tutti gli elementi siano caricati
+            setTimeout(() => {
+                // Inizializza l'autocompletamento
+                initializeAutocomplete().catch(err => {
+                    console.error("Errore nell'inizializzazione dell'autocompletamento:", err);
+                });
+                
+                // Aggiorna le informazioni del profilo in modo sicuro
+                if (profileValue) {
+                    try {
+                        const profileInfo = document.getElementById('profileInfo');
+                        if (profileInfo) {
+                            updateProfileInfo(profileValue);
                         }
-                        
-                        // Aggiungi event listener ai pulsanti della dashboard con verifica
-                        const fetchDataBtn = document.getElementById('fetchDataBtn');
-                        if (fetchDataBtn) {
-                            fetchDataBtn.addEventListener('click', window.fetchData || fetchAllData);
-                        }
-                        
-                        const runAnalysisBtn = document.getElementById('runAnalysisBtn');
-                        if (runAnalysisBtn) {
-                            runAnalysisBtn.addEventListener('click', runAIAnalysis);
-                        }
-                        
-                        const downloadCsvBtn = document.getElementById('downloadCsvBtn');
-                        if (downloadCsvBtn) {
-                            downloadCsvBtn.addEventListener('click', window.downloadCSV);
-                        }
-                        
-                        // Aggiorna il box informativo quando cambia il profilo
-                        const tradingProfile = document.getElementById('tradingProfile');
-                        if (tradingProfile) {
-                            tradingProfile.addEventListener('change', function() {
-                                try {
-                                    updateProfileInfo(this.value);
-                                } catch (e) {
-                                    console.error('Errore nel cambio profilo:', e);
-                                }
-                            });
-                        }
-                        
-                        // Gestione evento di copy per ordine MT4
-                        document.addEventListener('click', function(e) {
-                            if (e.target && e.target.id === 'copyOrderBtn') {
-                                if (typeof window.copyOrderToClipboard === 'function') {
-                                    window.copyOrderToClipboard();
-                                }
-                            }
-                        });
-                    }, 100);
-                } catch (error) {
-                    console.error('Errore durante l\'inizializzazione della dashboard:', error);
+                    } catch (e) {
+                        console.error('Errore nell\'aggiornamento del profilo:', e);
+                    }
                 }
+                
+                // Aggiungi event listener ai pulsanti della dashboard
+                const fetchDataBtn = document.getElementById('fetchDataBtn');
+                if (fetchDataBtn) {
+                    fetchDataBtn.addEventListener('click', () => fetchAllData(false));
+                }
+                
+                const refreshDataBtn = document.getElementById('refreshDataBtn');
+                if (refreshDataBtn) {
+                    refreshDataBtn.addEventListener('click', () => fetchAllData(true));
+                }
+                
+                const runAnalysisBtn = document.getElementById('runAnalysisBtn');
+                if (runAnalysisBtn) {
+                    runAnalysisBtn.addEventListener('click', runAIAnalysis);
+                }
+                
+                const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+                if (downloadCsvBtn) {
+                    downloadCsvBtn.addEventListener('click', window.downloadCSV);
+                }
+                
+                const clearCacheBtn = document.getElementById('clearCacheBtn');
+                if (clearCacheBtn) {
+                    clearCacheBtn.addEventListener('click', clearCache);
+                }
+                
+                // Aggiorna il box informativo quando cambia il profilo
+                const tradingProfile = document.getElementById('tradingProfile');
+                if (tradingProfile) {
+                    tradingProfile.addEventListener('change', function() {
+                        try {
+                            updateProfileInfo(this.value);
+                        } catch (e) {
+                            console.error('Errore nel cambio profilo:', e);
+                        }
+                    });
+                }
+                
+                // Esponi le funzioni globalmente
+                window.fetchAllData = fetchAllData;
+                window.runAIAnalysis = runAIAnalysis;
+                window.fetchSentimentAnalysis = fetchSentimentAnalysis;
+                window.copyOrderToClipboard = copyOrderToClipboard;
+                window.clearCache = clearCache;
+                
+                console.log('Event listeners configurati con successo');
+            }, 100);
+        }
+        
+        // Event listener per quando la dashboard è pronta
+        document.addEventListener('dashboard-ready', function(event) {
+            try {
+                initDashboardListeners(event.detail?.profileValue);
+            } catch (error) {
+                console.error('Errore durante l\'inizializzazione della dashboard:', error);
+            }
+        });
+        
+        // Gestione errori globale
+        window.addEventListener('error', function(event) {
+            console.error('Errore JavaScript non gestito:', {
+                message: event.message,
+                source: event.filename,
+                line: event.lineno,
+                column: event.colno
+            });
+        });
+        
+        // Gestione errori di rete
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Promise non gestita:', {
+                reason: event.reason ? event.reason.message : 'Unknown'
             });
         });
     </script>

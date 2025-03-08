@@ -3,6 +3,16 @@
  * Questo script deve essere posizionato prima degli altri script nell'HTML
  */
 
+// Crea oggetti vuoti per i moduli se non esistono
+if (typeof window.Logger === 'undefined') {
+    window.Logger = {
+        debug: console.debug.bind(console),
+        info: console.info.bind(console),
+        warn: console.warn.bind(console),
+        error: console.error.bind(console)
+    };
+}
+
 // Salva il metodo originale prima di sovrascriverlo
 const originalGetElementById = document.getElementById.bind(document);
 
@@ -63,7 +73,7 @@ document.getElementById = function(id) {
     else if (id === 'output') {
       return ensureDOMElement('output', 'pre');
     }
-    else if (id === 'fetchDataBtn' || id === 'runAnalysisBtn' || id === 'downloadCsvBtn') {
+    else if (id === 'fetchDataBtn' || id === 'runAnalysisBtn' || id === 'downloadCsvBtn' || id === 'clearCacheBtn' || id === 'refreshDataBtn') {
       return ensureDOMElement(id, 'button');
     }
     else if (id === 'symbol') {
@@ -109,22 +119,37 @@ if (!window.runAIAnalysis) window.runAIAnalysis = function() { console.log('runA
 if (!window.fetchSentimentAnalysis) window.fetchSentimentAnalysis = function() { console.log('fetchSentimentAnalysis stub chiamato'); };
 if (!window.updateProfileInfo) window.updateProfileInfo = function() { console.log('updateProfileInfo stub chiamato'); };
 if (!window.copyOrderToClipboard) window.copyOrderToClipboard = function() { console.log('copyOrderToClipboard stub chiamato'); };
+if (!window.clearCache) window.clearCache = function() { console.log('clearCache stub chiamato'); };
 
 // Overriding sicuro dei metodi di aggiunta listener per prevenire errori
 const originalAddEventListener = HTMLElement.prototype.addEventListener;
 HTMLElement.prototype.addEventListener = function(type, listener, options) {
-  // Se l'elemento non è nel DOM, aggiungi quando sarà pronto
-  if (!document.body.contains(this)) {
-    console.log(`Aggiungo evento ${type} a elemento non nel DOM`, this);
-    window.domSafeOperation(() => {
-      if (document.body.contains(this)) {
-        originalAddEventListener.call(this, type, listener, options);
-      }
-    });
-  } else {
-    originalAddEventListener.call(this, type, listener, options);
+  try {
+    // Se l'elemento non è nel DOM, aggiungi quando sarà pronto
+    if (!document.body.contains(this)) {
+      console.log(`Aggiungo evento ${type} a elemento non nel DOM`, this);
+      window.domSafeOperation(() => {
+        if (document.body.contains(this)) {
+          originalAddEventListener.call(this, type, listener, options);
+        }
+      });
+    } else {
+      originalAddEventListener.call(this, type, listener, options);
+    }
+  } catch (e) {
+    console.error(`Errore nell'aggiunta dell'event listener ${type}:`, e);
   }
 };
+
+// Verifica compatibilità API
+if (!window.fetch) {
+  console.error("Fetch API non supportata in questo browser. L'applicazione potrebbe non funzionare correttamente.");
+}
+
+// Gestione globale delle promise non catturate
+window.addEventListener('unhandledrejection', function(event) {
+  console.error("Promise non gestita:", event.reason);
+});
 
 // Log di inizializzazione
 console.log('Script di correzione errori caricato!');

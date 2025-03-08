@@ -84,59 +84,69 @@ window.fetchData = async function() {
         }
     } catch (error) {
         console.error("Errore durante l'analisi:", error);
+        
+        // Assicurati che il pulsante venga riabilitato anche in caso di errore
+        const downloadBtn = document.getElementById('downloadCsvBtn');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+        }
     }
 };
 
 // Intercetta i link per catturare il download CSV
 document.addEventListener('DOMContentLoaded', function() {
-    const originalCreateElement = document.createElement;
-    document.createElement = function(tag) {
-        const element = originalCreateElement.call(document, tag);
-        
-        // Intercetta i link di download (generati da fetchAllData)
-        if (tag.toLowerCase() === 'a' && element) {
-            const originalHrefDescriptor = Object.getOwnPropertyDescriptor(HTMLAnchorElement.prototype, 'href');
+    try {
+        const originalCreateElement = document.createElement;
+        document.createElement = function(tag) {
+            const element = originalCreateElement.call(document, tag);
             
-            if (originalHrefDescriptor && originalHrefDescriptor.set) {
-                Object.defineProperty(element, 'href', {
-                    set: function(value) {
-                        // Chiamata originale
-                        originalHrefDescriptor.set.call(this, value);
-                        
-                        // Controlla se è un URL blob (CSV file)
-                        if (value.startsWith('blob:')) {
-                            // Estrai i dati dal blob URL
-                            fetch(value)
-                                .then(response => response.text())
-                                .then(text => {
-                                    // Memorizza i dati CSV per il download manuale
-                                    window.csvData = text;
-                                    
-                                    // Previeni il download automatico
-                                    const originalClick = element.click;
-                                    element.click = function() {
-                                        // Non fare nulla, il download avverrà tramite il pulsante dedicato
-                                        console.log('Download automatico prevenuto, usa il pulsante "Scarica CSV"');
+            // Intercetta i link di download (generati da fetchAllData)
+            if (tag.toLowerCase() === 'a' && element) {
+                const originalHrefDescriptor = Object.getOwnPropertyDescriptor(HTMLAnchorElement.prototype, 'href');
+                
+                if (originalHrefDescriptor && originalHrefDescriptor.set) {
+                    Object.defineProperty(element, 'href', {
+                        set: function(value) {
+                            // Chiamata originale
+                            originalHrefDescriptor.set.call(this, value);
+                            
+                            // Controlla se è un URL blob (CSV file)
+                            if (value.startsWith('blob:')) {
+                                // Estrai i dati dal blob URL
+                                fetch(value)
+                                    .then(response => response.text())
+                                    .then(text => {
+                                        // Memorizza i dati CSV per il download manuale
+                                        window.csvData = text;
                                         
-                                        // Abilita il pulsante di download
-                                        const downloadBtn = document.getElementById('downloadCsvBtn');
-                                        if (downloadBtn) {
-                                            downloadBtn.disabled = false;
-                                        }
-                                    };
-                                })
-                                .catch(err => console.error('Errore nel recupero dei dati CSV:', err));
+                                        // Previeni il download automatico
+                                        const originalClick = element.click;
+                                        element.click = function() {
+                                            // Non fare nulla, il download avverrà tramite il pulsante dedicato
+                                            console.log('Download automatico prevenuto, usa il pulsante "Scarica CSV"');
+                                            
+                                            // Abilita il pulsante di download
+                                            const downloadBtn = document.getElementById('downloadCsvBtn');
+                                            if (downloadBtn) {
+                                                downloadBtn.disabled = false;
+                                            }
+                                        };
+                                    })
+                                    .catch(err => console.error('Errore nel recupero dei dati CSV:', err));
+                            }
+                        },
+                        get: function() {
+                            return originalHrefDescriptor.get.call(this);
                         }
-                    },
-                    get: function() {
-                        return originalHrefDescriptor.get.call(this);
-                    }
-                });
+                    });
+                }
             }
-        }
-        
-        return element;
-    };
+            
+            return element;
+        };
+    } catch (error) {
+        console.error('Errore durante la configurazione dell\'intercettore di download:', error);
+    }
 });
 
 console.log('Wrapper.js versione aggiornata caricato con successo');

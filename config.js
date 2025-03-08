@@ -1,21 +1,18 @@
 /**
  * File di configurazione per le chiavi API e altre impostazioni globali
  * Versione ottimizzata con supporto per profili di trading avanzati e caching
+ * Versione browser-only
  */
 
-// Importa variabili d'ambiente
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Chiavi API
-export const API_KEY = process.env.FINANCIAL_MODELING_PREP_API_KEY || "bZ4lRrFkb5RaB1pZ1NGhlQs70L7LPUBG"; 
-export const PPLX_API_KEY = process.env.PERPLEXITY_API_KEY || "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";
+// Impostazione delle chiavi API con valori predefiniti
+export const API_KEY = "bZ4lRrFkb5RaB1pZ1NGhlQs70L7LPUBG"; 
+export const PPLX_API_KEY = "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";
 
 // Cache TTL
-export const CACHE_TTL = parseInt(process.env.CACHE_TTL || "3600", 10);
+export const CACHE_TTL = 3600; // 1 ora in secondi
 
 // Log level
-export const LOG_LEVEL = process.env.LOG_LEVEL || "INFO";
+export const LOG_LEVEL = "INFO";
 
 // Configurazioni per la visualizzazione
 export const CONFIG = {
@@ -113,7 +110,7 @@ export const CONFIG = {
             defaultTimeframe: "daily",
             lookbackPeriods: 90,
             characteristics: [
-                "Si concentra su trend più ampi e cicli di mercato",
+"Si concentra su trend più ampi e cicli di mercato",
                 "Meno operazioni, ma con grandi movimenti di prezzo",
                 "Analisi macroeconomica e tecnica avanzata",
                 "Elevata resilienza alla volatilità di breve termine",

@@ -44,22 +44,40 @@ export function validateAssetData(data) {
  * @returns {boolean} - true se i dati sono validi
  */
 export function validateTechnicalData(data) {
-    if (!data || !Array.isArray(data) || data.length === 0) {
-        Logger.warn('validateTechnicalData: dati mancanti o formato non valido');
+    if (!data) {
+        Logger.warn('validateTechnicalData: dati mancanti');
         return false;
     }
     
-    // Controllo che ci siano abbastanza dati per un'analisi significativa
-    if (data.length < 10) {
-        Logger.warn('validateTechnicalData: dati insufficienti per un\'analisi significativa', {count: data.length});
-        return false;
-    }
-    
-    // Controlla almeno un record per verificare la presenza di campi essenziali
-    const sampleRecord = data[0];
-    
-    if (!sampleRecord.date) {
-        Logger.warn('validateTechnicalData: campo data mancante', {sample: sampleRecord});
+    // Se i dati sono un array (caso API)
+    if (Array.isArray(data)) {
+        if (data.length === 0) {
+            Logger.warn('validateTechnicalData: array vuoto');
+            return false;
+        }
+        
+        // Controllo che ci siano abbastanza dati per un'analisi significativa
+        if (data.length < 10) {
+            Logger.warn('validateTechnicalData: dati insufficienti per un\'analisi significativa', {count: data.length});
+            return false;
+        }
+        
+        // Controlla almeno un record per verificare la presenza di campi essenziali
+        const sampleRecord = data[0];
+        
+        if (!sampleRecord.date) {
+            Logger.warn('validateTechnicalData: campo data mancante', {sample: sampleRecord});
+            return false;
+        }
+    } 
+    // Se è un oggetto di indicatori tecnici (caso oggetto elaborato)
+    else if (typeof data === 'object') {
+        if (!data.priceData || !data.priceData.current) {
+            Logger.warn('validateTechnicalData: dati di prezzo mancanti');
+            return false;
+        }
+    } else {
+        Logger.warn('validateTechnicalData: formato non valido');
         return false;
     }
     
@@ -106,4 +124,41 @@ export function validateSentimentData(data) {
 }
 
 /**
- 
+ * Valida i dati dell'ordine generato
+ * @param {Object} order - Dati dell'ordine
+ * @returns {boolean} - true se i dati sono validi
+ */
+export function validateOrderData(order) {
+    if (!order) {
+        Logger.warn('validateOrderData: dati mancanti');
+        return false;
+    }
+    
+    // Verifica che ci siano tutti i campi essenziali
+    if (!order.symbol || !order.orderType || !order.entryPrice || 
+        !order.stopLoss || !order.targetPrice || !order.positionSize) {
+        Logger.warn('validateOrderData: campi essenziali mancanti', {order});
+        return false;
+    }
+    
+    // Verifica la validità dei prezzi
+    if (isNaN(order.entryPrice) || isNaN(order.stopLoss) || isNaN(order.targetPrice)) {
+        Logger.warn('validateOrderData: prezzi non validi', {order});
+        return false;
+    }
+    
+    // Verifica la validità della size
+    if (isNaN(order.positionSize) || order.positionSize <= 0) {
+        Logger.warn('validateOrderData: size non valida', {order});
+        return false;
+    }
+    
+    // Verifica coerenza di entrata e stop loss
+    if ((order.orderType === 'BUY' && order.stopLoss >= order.entryPrice) ||
+        (order.orderType === 'SELL' && order.stopLoss <= order.entryPrice)) {
+        Logger.warn('validateOrderData: stop loss incoerente con il tipo di ordine', {order});
+        return false;
+    }
+    
+    return true;
+}

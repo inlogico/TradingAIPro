@@ -21,15 +21,21 @@ function initializeApp() {
     try {
         Logger.info("Inizializzazione TradingAI Pro...");
         
-        // Inizializza l'autocompletamento
-        initializeAutocomplete();
+        // Inizializza l'autocompletamento in modo sicuro
+        if (typeof initializeAutocomplete === 'function') {
+            initializeAutocomplete().catch(err => {
+                Logger.error("Errore nell'inizializzazione dell'autocompletamento:", { error: err.message });
+            });
+        } else {
+            Logger.warn("Funzione initializeAutocomplete non disponibile");
+        }
         
-        // Esponi le funzioni globalmente in modo sicuro
-        window.fetchAllData = fetchAllData;
-        window.runAIAnalysis = runAIAnalysis;
-        window.fetchSentimentAnalysis = fetchSentimentAnalysis;
-        window.copyOrderToClipboard = copyOrderToClipboard;
-        window.clearCache = clearCache;
+        // Esponi le funzioni globalmente in modo sicuro con controlli
+        if (typeof fetchAllData === 'function') window.fetchAllData = fetchAllData;
+        if (typeof runAIAnalysis === 'function') window.runAIAnalysis = runAIAnalysis;
+        if (typeof fetchSentimentAnalysis === 'function') window.fetchSentimentAnalysis = fetchSentimentAnalysis;
+        if (typeof copyOrderToClipboard === 'function') window.copyOrderToClipboard = copyOrderToClipboard;
+        if (typeof clearCache === 'function') window.clearCache = clearCache;
         
         // Aggiungi event listeners globali
         setupEventListeners();
@@ -53,7 +59,7 @@ function setupEventListeners() {
             // Attendi un attimo per essere sicuri che tutti gli elementi siano caricati
             setTimeout(() => {
                 // Aggiorna le informazioni del profilo in modo sicuro
-                const profileValue = event.detail.profileValue;
+                const profileValue = event.detail?.profileValue;
                 if (profileValue) {
                     try {
                         const profileInfo = document.getElementById('profileInfo');
@@ -86,7 +92,7 @@ function setupEventListeners() {
                 
                 const downloadCsvBtn = document.getElementById('downloadCsvBtn');
                 if (downloadCsvBtn) {
-                    downloadCsvBtn.addEventListener('click', window.downloadCSV);
+                    downloadCsvBtn.addEventListener('click', window.downloadCSV || (() => {}));
                 }
                 
                 const clearCacheBtn = document.getElementById('clearCacheBtn');

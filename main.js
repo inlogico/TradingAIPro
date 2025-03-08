@@ -39,7 +39,6 @@ import {
     adjustRecommendationWithSentiment, 
     enrichAnalysisWithSentiment 
 } from './sentimentAnalysis.js';
-import { generateAnalysisReport } from './csvGenerator.js';
 import { validateAssetData, validateTechnicalData, validateOrderData } from './validation.js';
 import { CONFIG } from './config.js';
 import Logger from './advanced-logger.js';
@@ -204,7 +203,8 @@ async function fetchAllData(forceRefresh = false) {
                 image: null
             };
         }
-// Se non abbiamo un'immagine, prova a recuperarla separatamente
+        
+        // Se non abbiamo un'immagine, prova a recuperarla separatamente
         if (!companyInfo.image) {
             companyInfo.image = await fetchCompanyLogo(symbol);
         }
@@ -411,12 +411,25 @@ async function fetchAllData(forceRefresh = false) {
         
         // Genera report CSV dell'analisi
         try {
-            await generateAnalysisReport({
-                ...latestData,
-                sentimentData: sentimentData
-            }, `${symbol}_${timeframe}_${Date.now()}.csv`);
+            // Genera report CSV dell'analisi
+            const csvModule = await import('./csvGenerator.js');
+            if (csvModule && csvModule.generateAnalysisReport) {
+                await csvModule.generateAnalysisReport({
+                    ...latestData,
+                    sentimentData: sentimentData
+                });
+                
+                Logger.info(`Report CSV dell'analisi generato con successo per ${symbol}`);
+            } else {
+                Logger.warn(`Modulo CSV non disponibile per ${symbol}`);
+            }
         } catch (csvError) {
             Logger.error('Errore nella generazione del report CSV:', { error: csvError.message });
+        }
+
+        // Mostra il pulsante di archivio se disponibile
+        if (typeof window.addArchiveButton === 'function') {
+            window.addArchiveButton();
         }
     } catch (error) {
         showError("output", `Errore nell'elaborazione dei dati: ${error.message}`);
@@ -633,4 +646,3 @@ export {
     copyOrderToClipboard,
     clearCache
 };
-        

@@ -2,7 +2,7 @@
  * Modulo per il recupero dati API con gestione errori, validazione e caching
  */
 
-import { API_KEY, API_ENDPOINTS, PPLX_API_KEY, AI_CONFIG } from './config.js';
+import { API_KEY, API_ENDPOINTS, PPLX_API_KEY, AI_CONFIG, CONFIG } from './config.js';
 import APICache from './caching.js';
 import Logger from './advanced-logger.js';
 import { validateAssetData, validateTechnicalData, validateSentimentData } from './validation.js';
@@ -27,7 +27,13 @@ async function fetchWithCache(url, cacheKey, forceRefresh = false) {
         
         // Se dati non in cache o refresh forzato, recupera da API
         Logger.debug(`Fetching: ${url}`);
-        const response = await fetch(url);
+        
+        // Aggiungi un timeout per evitare richieste bloccate
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondi di timeout
+        
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
             throw new Error(`Errore API: ${response.status} ${response.statusText}`);
@@ -40,6 +46,12 @@ async function fetchWithCache(url, cacheKey, forceRefresh = false) {
         
         return data;
     } catch (error) {
+        // Gestisci specificamente gli errori di timeout
+        if (error.name === 'AbortError') {
+            Logger.error("Timeout della richiesta API:", { url });
+            throw new Error(`Timeout della richiesta API: ${url}`);
+        }
+        
         Logger.error("Errore nel recupero dati:", { url, error: error.message });
         throw error;
     }
@@ -234,8 +246,8 @@ export async function fetchMarketContext(forceRefresh = false) {
 
 /**
  * Recupera i dati di sentiment per un simbolo
- * @param {string} symbol - Simbolo dello strumento finanziario
- * @param {boolean} forceRefresh - Forza il refresh ignorando la cache
+ * @param {string} symbol - Simbolo dell'asset
+ * @param {boolean} forceRefresh - Se true, forza un refresh ignorando la cache
  * @returns {Promise<Object>} - Dati di sentiment
  */
 export async function fetchSentimentData(symbol, forceRefresh = false) {
@@ -243,17 +255,18 @@ export async function fetchSentimentData(symbol, forceRefresh = false) {
         // Recupera dati di sentiment social
         const socialUrl = `${API_ENDPOINTS.baseUrl}/social-sentiment/trending/${symbol}?apikey=${API_KEY}`;
         const socialCacheKey = `sentiment_social_${symbol}`;
-        const socialData = await fetchWithCache(socialUrl, socialCacheKey, forceRefresh);
         
-        // Recupera dati di sentiment dalle news
-        const newsUrl = `${API_ENDPOINTS.baseUrl}/stock-news-sentiments-rss-feed/${symbol}?limit=20&apikey=${API_KEY}`;
-        const newsCacheKey = `sentiment_news_${symbol}`;
-        const newsData = await fetchWithCache(newsUrl, newsCacheKey, forceRefresh);
+        // Usa Promise.allSettled per gestire gli errori individuali
+        const [socialResponse, newsResponse, analystResponse] = await Promise.allSettled([
+            fetchWithCache(socialUrl, socialCacheKey, forceRefresh),
+            fetchWithCache(`${API_ENDPOINTS.baseUrl}/stock-news-sentiments-rss-feed/${symbol}?limit=20&apikey=${API_KEY}`, `sentiment_news_${symbol}`, forceRefresh),
+            fetchWithCache(`${API_ENDPOINTS.baseUrl}/analyst-stock-recommendations/${symbol}?apikey=${API_KEY}`, `sentiment_analyst_${symbol}`, forceRefresh)
+        ]);
         
-        // Recupera opinioni degli analisti
-        const analystUrl = `${API_ENDPOINTS.baseUrl}/analyst-stock-recommendations/${symbol}?apikey=${API_KEY}`;
-        const analystCacheKey = `sentiment_analyst_${symbol}`;
-        const analystData = await fetchWithCache(analystUrl, analystCacheKey, forceRefresh);
+        // Estrai i dati da ciascuna risposta
+        const socialData = socialResponse.status === 'fulfilled' ? socialResponse.value : [];
+        const newsData = newsResponse.status === 'fulfilled' ? newsResponse.value : [];
+        const analystData = analystResponse.status === 'fulfilled' ? analystResponse.value : [];
         
         // Processa e integra i dati di sentiment
         let sentimentSocial = 0;
@@ -466,7 +479,7 @@ export async function fetchPriceTarget(symbol, forceRefresh = false) {
         
         return {
             priceTarget: latestTarget.priceTarget,
-            targetHigh: latestTarget.targetHigh,
+			targetHigh: latestTarget.targetHigh,
             targetLow: latestTarget.targetLow,
             numberOfAnalysts: latestTarget.numberOfAnalysts,
             lastUpdated: new Date(latestTarget.updatedDate).toISOString()
@@ -668,6 +681,9 @@ Fai emergere chiaramente il risultato della tua analisi senza ambiguità, basand
         
         // Chiamata API Perplexity con prompt di sistema migliorato e dati di sentiment
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 secondi di timeout
+            
             const response = await fetch(API_ENDPOINTS.perplexity, {
                 method: 'POST',
                 headers: {
@@ -686,8 +702,11 @@ Fai emergere chiaramente il risultato della tua analisi senza ambiguità, basand
                     ],
                     max_tokens: AI_CONFIG.maxTokens,
                     temperature: AI_CONFIG.temperature
-                })
+                }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -706,6 +725,12 @@ Fai emergere chiaramente il risultato della tua analisi senza ambiguità, basand
             
             return data.choices[0].message.content;
         } catch (apiError) {
+            // Gestisce anche il caso di timeout
+            if (apiError.name === 'AbortError') {
+                Logger.error('Timeout della richiesta API Perplexity');
+                throw new Error('Timeout della richiesta API. Riprova più tardi.');
+            }
+            
             Logger.error('Errore con l\'API Perplexity:', apiError.message);
             
             // In caso di errore API, genera una raccomandazione utilizzando l'algoritmo interno
@@ -730,7 +755,7 @@ function generateBackupAnalysis(symbol, companyInfo, technicalIndicators, market
 ## Analisi Tecnica Algoritmica (generata localmente)
 
 **SITUAZIONE ATTUALE:**
-${companyInfo.name} (${symbol}) mostra attualmente un prezzo di $${technicalIndicators.priceData.current.toFixed(2)} con una variazione di ${technicalIndicators.priceData.change > 0 ? '+' : ''}${technicalIndicators.priceData.change.toFixed(2)}% nel timeframe ${timeframe}. Il contesto di mercato è ${marketContext.spyTrend || 'neutrale'}.
+${companyInfo.name} (${symbol}) mostra attualmente un prezzo di $${technicalIndicators.priceData.current.toFixed(2)} con una variazione di ${technicalIndicators.priceData.change > 0 ? '+' : ''}${technicalIndicators.priceData.change.toFixed(2)}% nel timeframe corrente. Il contesto di mercato è ${marketContext.spyTrend || 'neutrale'}.
 
 **INDICATORI CHIAVE:**
 - RSI(${technicalIndicators.momentum.rsiPeriod}): ${technicalIndicators.momentum.rsi?.toFixed(2) || 'N/D'} (${technicalIndicators.momentum.rsi > 70 ? 'ipercomprato' : technicalIndicators.momentum.rsi < 30 ? 'ipervenduto' : 'neutrale'})
