@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingAI Pro - Generatore intelligente di segnali di Trading</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Stili aggiuntivi per i nuovi componenti di UI */
+        .profile-selection {
+            max-width: 1200px;
+            margin: var(--spacing-xl) auto;
+            padding: 0 var(--spacing-lg);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        
+        .profile-card {
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .profile-image-container {
+            height: 200px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+        }
+        
+        .profile-falcon {
+            background-color: #e5393599;
+        }
+        
+        .profile-snake {
+            background-color: #96d23299;
+        }
+        
+        .profile-bear {
+            background-color: #6b9b8e99;
+        }
+        
+        .profile-turtle {
+            background-color: #8bc34a99;
+        }
+        
+        .profile-selection-info {
+            padding: var(--spacing-lg);
+            background-color: var(--card-bg);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-title {
+            margin: 0 0 var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .profile-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .profile-features {
+            margin-top: auto;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+            font-size: 0.85rem;
+        }
+        
+        .feature-icon {
+            margin-right: var(--spacing-sm);
+            color: var(--primary-color);
+        }
+        
+        .dashboard-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-icon {
+            margin-right: var(--spacing-sm);
+            font-size: 1.8rem;
+        }
+        
+        /* Layout migliorato per la sezione search */
+        .search-section {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .search-controls {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .search-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        /* Miglioramenti visivi per i container principali */
+        #technicalOverview {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-md);
+        }
+        
+        #output-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        
+        #output {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .sentiment-container, .analysis-container, .order-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-lg);
+            overflow: hidden;
+        }
+        
+        .sentiment-title, .analysis-title, .order-title {
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            background-color: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sentiment-icon, .analysis-icon, .order-icon {
+            margin-right: var(--spacing-sm);
+            font-size: 1.2rem;
+        }
+        
+        #sentimentOutput, #aiAnalysisOutput, #orderSummaryOutput {
+            padding: var(--spacing-lg);
+        }
+        
+        .success-message {
+            color: var(--success-color);
+            background-color: rgba(76, 175, 80, 0.1);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            border-left: 4px solid var(--success-color);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .search-row {
+                flex-direction: column;
+                gap: var(--spacing-md);
+            }
+            
+            .input-group {
+                width: 100%;
+            }
+        }
+        
+        /* Stile per il pulsante di download CSV */
+        #downloadCsvBtn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        #downloadCsvBtn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        #downloadCsvBtn .btn-icon {
+            margin-right: var(--spacing-sm);
+        }
+        
+        #downloadCsvBtn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+	<!-- Nella sezione head, aggiungi: -->
+<script type="module" src="app.js"></script>
+
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="app-title">TradingAI Pro<span class="tagline">Analisi tecnica potenziata dall'intelligenza artificiale</span></h1>
+    </header>
+
+    <main class="app-container">
+        <!-- Contenitore principale che cambierà contenuto dinamicamente -->
+        <div id="main-content">
+            <!-- Inizialmente mostra la selezione del profilo -->
+            <div id="profile-selection" class="profile-selection">
+                <!-- Falco dello Scalping -->
+                <div class="profile-card" data-profile="scalping">
+                    <div class="profile-image-container profile-falcon">🦅</div>
+                    <div class="profile-selection-info">
+                        <h2 class="profile-title">Falco dello Scalping</h2>
+                        <p class="profile-description">Operazioni rapide e frequenti con target di profitto contenuti</p>
+                        <div class="profile-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">⏱️</span>
+                                <span>Timeframe: 1min - 30min</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📈</span>
+                                <span>Alta reattività al mercato</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span>Precisione chirurgica</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Serpente dello Swing Trading -->
+                <div class="profile-card" data-profile="swing">
+                    <div class="profile-image-container profile-snake">🐍</div>
+                    <div class="profile-selection-info">
+                        <h2 class="profile-title">Serpente dello Swing Trading</h2>
+                        <p class="profile-description">Sfrutta le oscillazioni di mercato su orizzonti di giorni</p>
+                        <div class="profile-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">⏱️</span>
+                                <span>Timeframe: 1h - Daily</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📊</span>
+                                <span>Analisi tecnica avanzata</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">⚖️</span>
+                                <span>Rischio bilanciato</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Orso del Position Trading -->
+                <div class="profile-card" data-profile="position">
+                    <div class="profile-image-container profile-bear">🐻</div>
+                    <div class="profile-selection-info">
+                        <h2 class="profile-title">Orso del Position Trading</h2>
+                        <p class="profile-description">Trend di lungo periodo con solida analisi fondamentale</p>
+                        <div class="profile-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">⏱️</span>
+                                <span>Timeframe: Daily - Weekly</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🔍</span>
+                                <span>Analisi macroeconomica</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🛡️</span>
+                                <span>Elevata resilienza</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tartaruga dell'Investimento -->
+                <div class="profile-card" data-profile="longterm">
+                    <div class="profile-image-container profile-turtle">🐢</div>
+                    <div class="profile-selection-info">
+                        <h2 class="profile-title">Tartaruga dell'Investimento</h2>
+                        <p class="profile-description">Investimenti di lungo termine con focus sulla crescita</p>
+                        <div class="profile-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">⏱️</span>
+                                <span>Timeframe: Weekly - Monthly</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📊</span>
+                                <span>Analisi fondamentale</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🌱</span>
+                                <span>Crescita costante</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2025 TradingAI Pro. Tutti i dati forniti da Financial Modeling Prep. Le analisi AI sono generate con Perplexity AI.</p>
+    </footer>
+
+    <!-- Template della dashboard che verrà caricato dinamicamente -->
+    <template id="dashboard-template">
+        <div id="dashboard-main">
+            <h2 class="dashboard-title"><span class="dashboard-icon">📊</span> Dashboard di Analisi Asset</h2>
+            
+            <section class="search-section">
+                <div class="search-controls">
+                    <div class="search-row">
+                        <div class="input-group">
+                            <label for="symbol">Simbolo Asset:</label>
+                            <input type="text" id="symbol" placeholder="Es. AAPL, MSFT, TSLA..." autocomplete="off">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="tradingProfile">Profilo Trading:</label>
+                            <select id="tradingProfile">
+                                <option value="scalping">🦅 Falco dello Scalping</option>
+                                <option value="swing">🐍 Serpente dello Swing Trading</option>
+                                <option value="position">🐻 Orso del Position Trading</option>
+                                <option value="longterm">🐢 Tartaruga dell'Investimento</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="fetchDataBtn" class="btn-primary">
+                            <span class="btn-icon">🔄</span>
+                            Analizza Asset
+                        </button>
+						<!-- Aggiungere dopo il pulsante fetchDataBtn -->
+						<button id="refreshDataBtn" class="btn-secondary">
+							<span class="btn-icon">🔄</span>
+							Forza Refresh
+						</button>
+                        <button id="downloadCsvBtn" class="btn-secondary" disabled>
+                            <span class="btn-icon">📥</span>
+                            Scarica CSV
+                        </button>
+						<!-- Aggiungere dopo il pulsante downloadCsvBtn -->
+						<button id="clearCacheBtn" class="btn-secondary">
+							<span class="btn-icon">🧹</span>
+							Pulisci Cache
+						</button>
+                        <button id="runAnalysisBtn" class="btn-secondary">
+                            <span class="btn-icon">🧠</span>
+                            Genera Analisi AI
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="profileInfo" class="profile-info"></div>
+            </section>
+
+            <div id="output-container">
+                <div id="technicalOverview" style="display: none;"></div>
+                <pre id="output">Inserisci un simbolo e seleziona un profilo di trading per iniziare l'analisi.</pre>
+                
+                <div id="sentimentContainer" class="sentiment-container" style="display: none;">
+                    <div class="sentiment-title"><span class="sentiment-icon">🌐</span> Analisi Sentiment di Mercato</div>
+                    <div id="sentimentOutput"></div>
+                </div>
+                
+                <div id="aiAnalysisContainer" class="analysis-container" style="display: none;">
+                    <div class="analysis-title"><span class="analysis-icon">🧠</span> Analisi AI Avanzata</div>
+                    <div id="aiAnalysisOutput"></div>
+                </div>
+                
+                <div id="orderSummaryContainer" class="order-container" style="display: none;">
+                    <div class="order-title"><span class="order-icon">📈</span> Segnale di Trading MT4</div>
+                    <div id="orderSummaryOutput"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Script per correggere errori di riferimento DOM e timing -->
+    <script src="fix-errors.js"></script>
+
+    <!-- Wrapper per assicurare la compatibilità -->
+    <script src="wrapper.js"></script>
+
+    <!-- Script normale (non module) per definire funzioni globali -->
+    <script>
+        // Definizione globale della funzione selectProfile
+        function selectProfile(profileValue) {
+            // Carica il template della dashboard
+            const template = document.getElementById('dashboard-template');
+            const mainContent = document.getElementById('main-content');
+            
+            // Clona il contenuto del template e sostituisce il contenuto attuale
+            const dashboardContent = template.content.cloneNode(true);
+            mainContent.innerHTML = '';
+            mainContent.appendChild(dashboardContent);
+            
+            // Imposta il profilo selezionato nel dropdown
+            const profileSelect = document.getElementById('tradingProfile');
+            if (profileSelect && profileValue) {
+                profileSelect.value = profileValue;
+            }
+            
+            // Emetti un evento custom quando la dashboard è pronta
+            setTimeout(function() {
+                document.dispatchEvent(new CustomEvent('dashboard-ready', {
+                    detail: { profileValue }
+                }));
+            }, 50); // Piccolo delay per essere sicuri che il DOM sia pronto
+        }
+        
+        // Aggiungi event listener ai profili
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.profile-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const profileValue = this.getAttribute('data-profile');
+                    selectProfile(profileValue);
+                });
+            });
+        });
+    </script>
+
+<!-- Script module per importare le funzionalità esistenti -->
+    <script type="module">
+        import { fetchAllData, runAIAnalysis, updateProfileInfo, fetchSentimentAnalysis } from './main.js';
+        import { initializeAutocomplete } from './autocomplete.js';
+        
+        // Esponiamo le funzioni globalmente in modo sicuro
+        window.domSafeOperation(() => {
+            window.fetchAllData = fetchAllData;
+            window.runAIAnalysis = runAIAnalysis;
+            window.fetchSentimentAnalysis = fetchSentimentAnalysis;
+            window.updateProfileInfo = updateProfileInfo;
+            
+            // Inizializza event listener quando la dashboard è pronta
+            document.addEventListener('dashboard-ready', function(event) {
+                try {
+                    console.log('Dashboard pronta, inizializzazione componenti...');
+                    
+                    // Attendi un attimo per essere sicuri che tutti gli elementi siano caricati
+                    setTimeout(() => {
+                        // Inizializza l'autocompletamento
+                        initializeAutocomplete();
+                        
+                        // Aggiorna le informazioni del profilo in modo sicuro
+                        const profileValue = event.detail.profileValue;
+                        if (profileValue) {
+                            try {
+                                const profileInfo = document.getElementById('profileInfo');
+                                if (profileInfo) {
+                                    updateProfileInfo(profileValue);
+                                } else {
+                                    console.warn('Elemento profileInfo non trovato');
+                                }
+                            } catch (e) {
+                                console.error('Errore nell\'aggiornamento del profilo:', e);
+                            }
+                        }
+                        
+                        // Aggiungi event listener ai pulsanti della dashboard con verifica
+                        const fetchDataBtn = document.getElementById('fetchDataBtn');
+                        if (fetchDataBtn) {
+                            fetchDataBtn.addEventListener('click', window.fetchData || fetchAllData);
+                        }
+                        
+                        const runAnalysisBtn = document.getElementById('runAnalysisBtn');
+                        if (runAnalysisBtn) {
+                            runAnalysisBtn.addEventListener('click', runAIAnalysis);
+                        }
+                        
+                        const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+                        if (downloadCsvBtn) {
+                            downloadCsvBtn.addEventListener('click', window.downloadCSV);
+                        }
+                        
+                        // Aggiorna il box informativo quando cambia il profilo
+                        const tradingProfile = document.getElementById('tradingProfile');
+                        if (tradingProfile) {
+                            tradingProfile.addEventListener('change', function() {
+                                try {
+                                    updateProfileInfo(this.value);
+                                } catch (e) {
+                                    console.error('Errore nel cambio profilo:', e);
+                                }
+                            });
+                        }
+                        
+                        // Gestione evento di copy per ordine MT4
+                        document.addEventListener('click', function(e) {
+                            if (e.target && e.target.id === 'copyOrderBtn') {
+                                if (typeof window.copyOrderToClipboard === 'function') {
+                                    window.copyOrderToClipboard();
+                                }
+                            }
+                        });
+                    }, 100);
+                } catch (error) {
+                    console.error('Errore durante l\'inizializzazione della dashboard:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

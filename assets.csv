@@ -1,0 +1,80 @@
+Asset,Name,Category
+AAPL,Apple Inc.,STOCKS
+MSFT,Microsoft Corporation,STOCKS
+AMZN,Amazon.com Inc.,STOCKS
+GOOGL,Alphabet Inc.,STOCKS
+TSLA,Tesla Inc.,STOCKS
+NVDA,NVIDIA Corporation,STOCKS
+BRK-B,Berkshire Hathaway Inc.,STOCKS
+JPM,JPMorgan Chase & Co.,STOCKS
+V,Visa Inc.,STOCKS
+MA,Mastercard Incorporated,STOCKS
+UNH,UnitedHealth Group Incorporated,STOCKS
+XOM,Exxon Mobil Corporation,STOCKS
+JNJ,Johnson & Johnson,STOCKS
+PG,Procter & Gamble Company,STOCKS
+HD,Home Depot Inc.,STOCKS
+ADBE,Adobe Inc.,STOCKS
+PFE,Pfizer Inc.,STOCKS
+CRM,Salesforce Inc.,STOCKS
+ABT,Abbott Laboratories,STOCKS
+TMO,Thermo Fisher Scientific Inc.,STOCKS
+AVGO,Broadcom Inc.,STOCKS
+NFLX,Netflix Inc.,STOCKS
+COST,Costco Wholesale Corporation,STOCKS
+PEP,PepsiCo Inc.,STOCKS
+MCD,McDonald's Corporation,STOCKS
+LIN,Linde plc,STOCKS
+BAC,Bank of America Corporation,STOCKS
+WMT,Walmart Inc.,STOCKS
+KO,Coca-Cola Company,STOCKS
+DIS,Walt Disney Company,STOCKS
+MRK,Merck & Co. Inc.,STOCKS
+QCOM,QUALCOMM Incorporated,STOCKS
+ABBV,AbbVie Inc.,STOCKS
+TXN,Texas Instruments Incorporated,STOCKS
+DHR,Danaher Corporation,STOCKS
+ORCL,Oracle Corporation,STOCKS
+AMD,Advanced Micro Devices Inc.,STOCKS
+NKE,NIKE Inc.,STOCKS
+PM,Philip Morris International Inc.,STOCKS
+LOW,Lowe's Companies Inc.,STOCKS
+UPS,United Parcel Service Inc.,STOCKS
+SBUX,Starbucks Corporation,STOCKS
+T,AT&T Inc.,STOCKS
+BMY,Bristol-Myers Squibb Company,STOCKS
+HON,Honeywell International Inc.,STOCKS
+RTX,RTX Corporation,STOCKS
+DE,Deere & Company,STOCKS
+LMT,Lockheed Martin Corporation,STOCKS
+CAT,Caterpillar Inc.,STOCKS
+GS,Goldman Sachs Group Inc.,STOCKS
+AXP,American Express Company,STOCKS
+BLK,BlackRock Inc.,STOCKS
+PYPL,PayPal Holdings Inc.,STOCKS
+INTU,Intuit Inc.,STOCKS
+ISRG,Intuitive Surgical Inc.,STOCKS
+MDT,Medtronic plc,STOCKS
+GILD,Gilead Sciences Inc.,STOCKS
+AMT,American Tower Corporation,STOCKS
+MO,Altria Group Inc.,STOCKS
+TGT,Target Corporation,STOCKS
+SYK,Stryker Corporation,STOCKS
+CMCSA,Comcast Corporation,STOCKS
+CI,Cigna Corporation,STOCKS
+MMM,3M Company,STOCKS
+GE,General Electric Company,STOCKS
+SO,The Southern Company,STOCKS
+DUKE,Duke Energy Corporation,STOCKS
+PLD,Prologis Inc.,STOCKS
+SPG,Simon Property Group Inc.,STOCKS
+CCI,Crown Castle International Corp.,STOCKS
+APD,Air Products and Chemicals Inc.,STOCKS
+SHW,Sherwin-Williams Company,STOCKS
+BDX,Becton Dickinson and Company,STOCKS
+ZTS,Zoetis Inc.,STOCKS
+TJX,TJX Companies Inc.,STOCKS
+CME,CME Group Inc.,STOCKS
+SPGI,S&P Global Inc.,STOCKS
+ICE,Intercontinental Exchange Inc.,STOCKS
+
